@@ -5,38 +5,16 @@
 import json
 import dateutil.parser
 import babel
-from flask import (
-    Flask, 
-    render_template, 
-    request, 
-    Response, 
-    flash, 
-    redirect, 
-    url_for
-)
-from flask_moment import Moment
-from flask_sqlalchemy import SQLAlchemy
+from flask import Flask, render_template, request, Response, flash, redirect, url_for
 import logging
 from logging import Formatter, FileHandler
 from flask_wtf import Form
 from forms import *
-from flask_migrate import Migrate
-from models import db, Venue, Artist, Show, Genre
+from models import *
 
 from datetime import datetime
 import re
 from operator import itemgetter 
-
-#----------------------------------------------------------------------------#
-# App Config.
-#----------------------------------------------------------------------------#
-
-app = Flask(__name__)
-moment = Moment(app)
-app.config.from_object('config')
-db.init_app(app)
-
-migrate = Migrate(app, db)
 
 #----------------------------------------------------------------------------#
 # Filters.
@@ -50,7 +28,6 @@ def format_datetime(value, format='medium'):
     elif format == 'medium':
         format = "EE MM, dd, y h:mma"
     return babel.dates.format_datetime(date, format)
-
 
 app.jinja_env.filters['datetime'] = format_datetime
 
@@ -460,19 +437,6 @@ def edit_artist(artist_id):
         "image_link": artist.image_link
     }
 
-    # artist = {
-    #     "id": 4,
-    #     "name": "Guns N Petals",
-    #     "genres": ["Rock n Roll"],
-    #     "city": "San Francisco",
-    #     "state": "CA",
-    #     "phone": "326-123-5000",
-    #     "website": "https://www.gunsnpetalsband.com",
-    #     "facebook_link": "https://www.facebook.com/GunsNPetals",
-    #     "seeking_venue": True,
-    #     "seeking_description": "Looking for shows to perform at in the San Francisco Bay Area!",
-    #     "image_link": "https://images.unsplash.com/photo-1549213783-8284d0336c4f?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=300&q=80"
-    # }
     return render_template('forms/edit_artist.html', form=form, artist=artist)
 
 
@@ -523,12 +487,6 @@ def edit_artist_submission(artist_id):
             artist.facebook_link = facebook_link
 
             # First we need to clear (delete) all the existing genres off the artist otherwise it just adds them
-            
-            # For some reason this didn't work! Probably has to do with flushing/lazy, etc.
-            # for genre in artist.genres:
-            #     artist.genres.remove(genre)
-                        
-            # artist.genres.clear()  # Either of these work.
             artist.genres = []
             
             # genres can't take a list of strings, it needs to be assigned to db objects
